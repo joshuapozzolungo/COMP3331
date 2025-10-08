@@ -826,3 +826,119 @@ receiver:
     - equal - no error detected. But maybe errors nonetheless
 
 ![alt text](image-48.png)
+
+## Reliable data transfer protocol (rdt) interfaces:
+![alt text](image-49.png)
+
+## rdt1.0: reliable transfer over a reliable channel
+Underlying channel perfectly reliable
+    - no bit errors
+    - no loss of packets
+- Nothing to do
+
+![alt text](image-50.png)
+
+## rdt2.0: Channel with bit errors
+Underlying channel may flip bits in packet
+- checksum (e.g Internet checksum) to detect errors
+- **Acknowledgements (ACKs):** receiver explicitly tells sender that packet received is OK
+- **Negative acknowledgements (NAKs):** receiver explicitly tells sender that packet had errors
+- **stop and wait:** Sender sends on packet, then waits for receiver response
+- Sender retransmits packet on receipt of NAK
+
+New mechanism in rdt2.0:
+- error detection
+- feedback: control messages (ACK, NAK) from receiver to sender
+- retransmission
+
+![alt text](image-51.png)
+
+## rdt2.0: has a fatal flaw!
+What happens if ACK/NAK is corrupted?
+- sender doesn't know what happened at receiver!
+- can't just retransmit: possible duplicate
+
+Handling duplicates
+- Sender retransmits current packet if ACK/NAK is corrupted
+- Sender adds sequence number to each packet
+- receiever discards duplicate packet
+
+## rdt2.1
+sender:
+- sequence number is added to packet
+- two sequence numbers (0, 1) will suffice
+- must check if receieved ACK/NAK corrupted
+- twice as many states
+    - state must "remember" whether "expected" packet should have a sequence number of 0 or 1
+
+receiver:
+- must check if receieved packet is duplicate
+- states whether 0 or 1 is expected packet sequence number
+
+![alt text](image-52.png)
+
+## rdt2.2: a NACK-free Protocol
+- Same functionality as rdt2.1, using ACKs only
+- Instead of NAK, receiver sends ACK for last packet received OK
+    - receiever must explicitly include sequence number of packet being ACKed
+- Duplicate ACK at sender results in same action as NAK: retransmit current packet
+
+![alt text](image-53.png)
+
+## rdt3.0: Channels with Errors and Loss
+**Approach:** sender waits "reasonable" amount of time for ACK
+- retransmits if no ACK is received in this time
+- if packet (or ACK) just delayed (not lost):
+    - retransmission will be duplicate, but seq #s already handles this
+    - receiever must specify seq # of packet being ACKed
+- use countdown timer to interrupt after "reasonable" amount of time
+- No retransmission on duplicate ACKs
+
+![alt text](image-54.png)
+![alt text](image-55.png)
+
+## Performance of rdt3.0 (stop and wait)
+![alt text](image-56.png)
+![alt text](image-57.png)
+
+## rdt3.0: Pipelined protocols operation
+Pipelining: sender allows multiple, "in-flight", yet to be acknolwedged packets
+- range of sequence numbers must be increased
+- buffering at sender and/or receiver
+- Go Back N, Selective Repeat
+
+## Pipelining: increased utilisation
+![alt text](image-58.png)
+
+## Go-Back N: sender
+- sender: "window" of up to N, consecutive transmitted but unACKED packets
+- cumulative ACK: ACK(n): ACKs all packets up to, including seq # n
+    - on receiving ACK(n): move window forward to begin at n+1
+- timeout(n): retransmit packet n and all higher seq # packets in window
+![alt text](image-59.png)
+
+## Go-Back N: receiver
+- ACK-only: always send ACK for correcty-received packet so far, with highest in-order seq #
+    - may generate duplciate ACKs
+    - need only remember rcv_base
+
+on receipt of out-of-order packet:
+    - can discard or buffer: an implementation decision
+    - re-ACK packet with highest in order seq #
+
+![alt text](image-60.png)
+![alt text](image-61.png)
+
+## Selective Repeat
+- Receiver individually acknowledges all correctly received packets
+    - buffers packets, as needed for eventual in-order delivery to upper layer
+- Sender times-out/retransmits individually for unACKED packets
+    - sender maintains timer for each unACKED packet
+- Sender window
+    - N consecutive seq #s
+    - limits seq #s of sent, unACKed packets
+
+![alt text](image-62.png)
+
+## Selective Repeat: Sender and Receiver
+![alt text](image-63.png)
