@@ -732,3 +732,97 @@ client:
     - enter deep: push CDN servers deep into mant access networks
         - close to users
     - bring home: smaller number (10's) of larger clusters in POPs near access networks
+
+# Transport Layer
+
+## Transport Layer Services & Protocols
+- Provide logical communication between application processes running on different hosts
+
+- Transport protocols actions in end system
+    - sender: breaks application messages into segments, passes to network layer
+    - receiver: reassembles segments into messages, passes to application layer
+- Two transport protocols available to Internet applications
+    - TCP, UDP
+
+## Two Principle Transport Layer Protocols
+TCP: Transmission Control Protocol
+- reliable, in-order delivery
+- congestion control
+- flow control
+- connection setup
+
+UDP: User Datagram Protocol
+- unreliable, unordered delivery
+- no frills extension of "best-effort" IP
+- Services not available:
+    - delay guarantees
+    - bandwidth guarantees
+
+## Multiplexing/demultiplexing
+![alt text](image-45.png)
+
+## How Demultiplexing Works
+Host receives IP datagrams
+- each datagram has source IP addresses, destination IP addresses
+- each datagram carries one transport-layer segment
+- each segment has source, destination port number
+
+Host uses IP addresses & port numbers to direct segment to appropriate socket
+
+## Connection oriented demulitplexing (TCP)
+- TCP socket identified by 4-tuple:
+    - source IP address
+    - source port number
+    - dest IP address
+    - dest port number
+- demux: receiver uses all four values (4-tuple) to direct segment to appropriate socket
+- Server may support many simulatenous TCP sockets:
+    - each socket identified by its own 4-tuple
+    - each socket associated with a different connecting client
+
+## Connectionless transport: UDP
+
+### User Datagram Protocol (UDP) - RFC 768
+connectionless:
+- no handshaking between UDP sender, receiver
+- each UDP segment handled independently of others
+
+Why is there a UDP?
+- no connection establishment 
+- simple: no connection state at sender, receiver
+- small header size
+- no congestion control
+    - UDP can blast away as fast as desired!
+    - can function in the face of congestion
+
+## User Datagram Protocol (UDP)
+Applications that use UDP:
+- streaming multimedia apps (loss tolerant, rate sensitive)
+- DNS
+- SNMP
+- HTTP/3
+
+If reliable transfer needed over UDP (e.g HTTP/3)
+- add needed reliability at application layer
+- add congestion control at application layer
+
+## UDP segment header
+![alt text](image-46.png)
+
+## UDP checksum
+Goal: detect errors (i.e flipped bits) in transmitted segment
+![alt text](image-47.png)
+
+## Internet Checksum
+sender:
+- treat contents of UDP segment as sequences of 16-bi9t integers
+- checksum: addition (one's complement sum) of segment content
+- checksum value put into UDP checksum field
+
+receiver:
+- compute checksum of received segment
+- check if computed checksum equals checksum field value:
+    - not equal - error detected
+    - equal - no error detected. But maybe errors nonetheless
+
+![alt text](image-48.png)
